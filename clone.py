@@ -103,11 +103,13 @@ class Clone(CLI):
         elif self.options.ccdctraining:
             self._clone_training()
         else:
-            self._clone_vm(self.options.node, self.options.vmid, **self.clone_args)
+            self._clone_vm(self.options.vmid, **self.clone_args)
         return
 
-    def _clone_vm(self, node: str, vmid: str, **kwargs) -> None:
+    def _clone_vm(self, vmid: str, **kwargs) -> None:
+        vms = self.prox.cluster.resources.get(type="vm")
         try:
+            node = self._get_vm_node(vmid)
             task_id = self.prox.nodes(node).qemu(vmid).clone.create(**kwargs)
             target = node if "target" not in kwargs else kwargs["target"]
             print(
@@ -118,12 +120,22 @@ class Clone(CLI):
             print(e)
         return
 
+    def _get_vm_node(self, vmid: str) -> str:
+        vms = self.prox.cluster.resources.get(type="vm")
+        for vm in vms:
+            if str(vm["vmid"]) == vmid:
+                return vm["node"]
+
+        raise FileNotFoundError("VMID not found in cluster")
+
+    def _get_vm_config(self, vmid: str) -> dict:
+        node = self._get_vm_node(vmid)
+        return self.prox.nodes(node).qemu(vmid).config.get()
+
     def _clone_env(self) -> None:
         for node in self.environment.nodes:
             for box in self.environment.boxes:
-                self._clone_vm(
-                    self.environment.template_node, box.id, target=node, **box.config
-                )
+                self._clone_vm(box.id, target=node, **box.config)
                 if box.cloud:
                     cloudinit.set_cloudinit(
                         self.prox, node, box.config["newid"], **box.cloud
@@ -155,7 +167,6 @@ class Clone(CLI):
         if confirm == "Y":
             for i in range(1, 1 + copies):
                 self._clone_vm(
-                    node,
                     template,
                     newid=newid + i - 1,
                     target=target_node,
@@ -191,20 +202,14 @@ Y to continue any other key to quit: "
             return
         for box in self.environment.boxes:
             id = box.id
-            conf = self.prox.nodes(self.environment.template_node).qemu(id).config.get()
-            if "net1" in conf:
+            if "net1" in self._get_vm_config(id):
                 router = id
                 break
         while clone_count < copies:
             for node in self.environment.nodes:
                 for box in self.environment.boxes:
-                    conf = (
-                        self.prox.nodes(self.environment.template_node)
-                        .qemu(box.id)
-                        .config.get()
-                    )
+                    conf = self._get_vm_config(box.id)
                     self._clone_vm(
-                        self.environment.template_node,
                         box.id,
                         newid=vmid,
                         target=node,
@@ -219,7 +224,7 @@ Y to continue any other key to quit: "
                             net1=f"model=virtio,bridge=vmbr{bridge}",
                         )
                     else:
-                        net = self.prox.nodes(node).qemu(vmid).config.get()["net0"]
+                        net = self._get_vm_config(str(vmid))["net0"]
                         model = net.split(",")[0].split("=")[0]
 
                         cloudinit.set_cloudinit(
