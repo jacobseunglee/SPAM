@@ -4,7 +4,7 @@ import utils.utils as utils
 import conf.config as config
 
 class Snapshot(CLI):
-    name = "clone"
+    name = "snapshot"
     def __init__(self, args):
         super().__init__(args)
 
@@ -31,6 +31,11 @@ class Snapshot(CLI):
             help='Rollback VM'
         )
         self.parser.add_argument(
+            '-d', '--delete',
+            action='store_true',
+            help='Delete snapshot for VM'
+        )
+        self.parser.add_argument(
             '-m', '--vmstate',
             action='store_true',
             help='Include RAM in snapshot.'
@@ -52,6 +57,8 @@ class Snapshot(CLI):
             self.parser.error("The 'vmid' argument are required unless -r is set.")
         if options.rollback:
             include: set[str] = {'start', 'snapname', 'vmid'}
+        elif options.delete:
+            include: set[str] = {'vmid','force', 'snapname'}
         else:
             include: set[str] = {'vmstate', 'snapname', 'vmid'}
         self.snapshot_args: dict[str,str] = {key: (1 if value is True else 0 if value is False else value) for key, value in vars(options).items() if value is not None and key in include}
@@ -62,6 +69,8 @@ class Snapshot(CLI):
         super().run()
         if self.options.rollback:
             func = self._rollback_snapshot
+        elif self.options.delete:
+            func = self._delete_snapshot
         else:
             func = self._make_snapshot
         
@@ -90,6 +99,15 @@ class Snapshot(CLI):
             task_id = self.prox.nodes(node).qemu(vmid).snapshot.post(snapname=snapname,**kwargs)
             utils.block_until_done(self.prox, task_id, node)
             print(f"Snapshotting VMID {vmid} in {node} as {snapname} snapshot.")
+        except Exception as e:
+            print(e)
+        return
+    
+    def _delete_snapshot(self, node: str, snapname: str = "base", vmid: int = -1, **kwargs):
+        try:
+            task_id = getattr(self.prox.nodes(node).qemu(vmid).snapshot, snapname).delete(**kwargs)
+            utils.block_until_done(self.prox, task_id, node)
+            print(f"Deleting snapshot {snapname} for VMID {vmid} in {node}.")
         except Exception as e:
             print(e)
         return

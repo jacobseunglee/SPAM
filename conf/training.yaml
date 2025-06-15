@@ -7,7 +7,7 @@ env:
   vmid_start: 1333338
   router_ip: 10.121.X.0/8
   gw: 10.0.0.1
-  bridge_start: 10
+  bridge_start: 5
   boxes:
   - id: '20250503'
     config:
