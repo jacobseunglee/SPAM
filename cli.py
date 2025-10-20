@@ -66,6 +66,19 @@ class CLI(ABC):
         cli = cls(args)
         cli.run()
 
+    def get_vm_resource(self, vmid: str) -> dict:
+        vms = self.prox.cluster.resources.get(type="vm")
+        for vm in vms:
+            if str(vm["vmid"]) == vmid:
+                return vm
+
+        raise FileNotFoundError("VMID not found in cluster")
+
+    def get_vm_config(self, vmid: str) -> dict:
+        node = self.get_vm_resource(vmid)["node"]
+        return self.prox.nodes(node).qemu(vmid).config.get()
+
+
 # add method to connect to proxmox 
 
 # add block until done here
