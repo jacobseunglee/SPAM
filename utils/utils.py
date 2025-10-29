@@ -58,7 +58,13 @@ def retry_on_failure(
                     else:
                         logger.error(f"All {max_attempts} attempts failed for {func.__name__}")
 
-            raise last_exception
+            if last_exception is not None:
+                raise last_exception
+            else:
+                raise RuntimeError(
+                    f"All {max_attempts} attempts failed for {func.__name__}, but no exception was caught. "
+                    "Check the 'exceptions' argument to the retry_on_failure decorator."
+                )
         return wrapper
     return decorator
 

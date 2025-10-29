@@ -2,7 +2,6 @@
 
 import os
 from pathlib import Path
-from typing import Optional
 
 from utils.logging_config import get_logger
 from utils.exceptions import ConfigurationError
