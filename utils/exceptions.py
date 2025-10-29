@@ -97,7 +97,6 @@ class ProxmoxPermissionError(SpamError):
 
 class InvalidTaskError(SpamError):
     """Raised when task ID is invalid or not found"""
-    
     def __init__(self, task_id: str):
         super().__init__(f"Invalid or not found task ID: {task_id}")
         self.task_id = task_id

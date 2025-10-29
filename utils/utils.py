@@ -5,6 +5,7 @@ from typing import Callable, Any, Optional, Union
 from functools import wraps
 
 from proxmoxer import ProxmoxAPI
+from proxmoxer.core import ResourceException, AuthenticationError as ProxmoxerAuthenticationError
 from utils.exceptions import (
     TaskTimeoutError, ProxmoxAPIError, VMNotFoundError,
     AuthenticationError, ProxmoxPermissionError, InvalidTaskError
@@ -102,18 +103,22 @@ def block_until_done(
     while True:
         try:
             data = prox.nodes(node).tasks(task_id).status.get()
-        except Exception as e:
-            error_msg = str(e).lower()
-            
-            # Check for authentication/permission errors (should not retry)
-            if any(keyword in error_msg for keyword in ['authentication', 'auth', 'unauthorized', '401']):
-                raise AuthenticationError(f"Authentication failed: {e}")
-            if any(keyword in error_msg for keyword in ['permission', 'forbidden', '403']):
-                raise ProxmoxPermissionError(f"Permission denied: {e}")
-            if any(keyword in error_msg for keyword in ['not found', '404', 'invalid task']):
+        except ProxmoxerAuthenticationError as e:
+            # Authentication errors should not be retried
+            raise AuthenticationError(f"Authentication failed: {e}")
+        except ResourceException as e:
+            # Handle specific HTTP status codes
+            if e.status_code == 401:
+                raise AuthenticationError(f"Authentication failed: {e.status_message}")
+            elif e.status_code == 403:
+                raise ProxmoxPermissionError(f"Permission denied: {e.status_message}")
+            elif e.status_code == 404:
                 raise InvalidTaskError(task_id)
-            
-            # For other errors, raise ProxmoxAPIError (which can be retried)
+            else:
+                # Other HTTP errors can be retried
+                raise ProxmoxAPIError(f"Failed to get task status: {e.status_message}", status_code=e.status_code)
+        except Exception as e:
+            # For other errors (network issues, etc.), raise ProxmoxAPIError (which can be retried)
             raise ProxmoxAPIError(f"Failed to get task status: {e}")
 
         status = data.get("status", "")
