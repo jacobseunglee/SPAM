@@ -1,5 +1,6 @@
 """Setup utilities for SPAM environment configuration"""
 
+import getpass
 import os
 from pathlib import Path
 
@@ -30,7 +31,7 @@ def setup_environment() -> None:
     print("\nProxmox Configuration:")
     env_vars['PROXMOX_HOST'] = input("Proxmox host/IP: ").strip()
     env_vars['PROXMOX_USER'] = input("Proxmox username: ").strip()
-    env_vars['PROXMOX_PASSWORD'] = input("Proxmox password: ").strip()
+    env_vars['PROXMOX_PASSWORD'] = getpass.getpass("Proxmox password: ").strip()
     env_vars['PROXMOX_REALM'] = input("Proxmox realm (default: pve): ").strip() or 'pve'
     env_vars['PROXMOX_DEFAULT_NODE'] = input("Default Proxmox node (optional): ").strip()
     
