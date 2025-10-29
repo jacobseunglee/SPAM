@@ -58,7 +58,7 @@ class Status(CLI):
         
         # Validate operation requirements
         if not options.vmid and not options.range and not options.crossnode:
-            raise ValidationError("The 'vmid' argument is required unless -r or -c is set")
+            raise ValidationError("The 'vmid' argument is required unless -r or --crossnode is set")
         
         # Validate that at least one operation is specified
         if not any([options.start, options.stop, options.destroy]):
