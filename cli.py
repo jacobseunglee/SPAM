@@ -31,11 +31,11 @@ class CLI(ABC):
         self.options = self.post_process_args(options)
     
     def connect(self):
-        self.prox: ProxmoxAPI = ProxmoxAPI(self.promxox_host, user=f'{self.proxmox_user}@{self.proxmox_realm}', password=self.proxmox_pass, verify_ssl=False)
+        self.prox: ProxmoxAPI = ProxmoxAPI(self.proxmox_host, user=f'{self.proxmox_user}@{self.proxmox_realm}', password=self.proxmox_pass, verify_ssl=False)
     
     def load_env(self) -> None:
         load_dotenv()
-        self.promxox_host = os.getenv('PROXMOX_HOST')
+        self.proxmox_host = os.getenv('PROXMOX_HOST')
         self.proxmox_user = os.getenv('PROXMOX_USER')
         self.proxmox_pass = os.getenv('PROXMOX_PASSWORD')
         self.proxmox_realm = os.getenv('PROXMOX_REALM')

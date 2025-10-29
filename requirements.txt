@@ -1,4 +1,17 @@
-proxmoxer==2.2.*
-requests==2.32.*
-python-dotenv==1.1.*
-pyyaml==6.0.*
+# Core dependencies
+proxmoxer>=2.2.0,<3.0.0
+requests>=2.32.0,<3.0.0
+python-dotenv>=1.1.0,<2.0.0
+pyyaml>=6.0.0,<7.0.0
+
+# Optional dependencies for enhanced functionality
+# colorama>=0.4.6  # For colored terminal output
+# rich>=13.0.0     # For rich terminal formatting
+# click>=8.0.0     # Alternative CLI framework (if needed)
+
+# Development dependencies (uncomment for development)
+# pytest>=7.0.0
+# pytest-cov>=4.0.0
+# black>=23.0.0
+# flake8>=6.0.0
+# mypy>=1.0.0
