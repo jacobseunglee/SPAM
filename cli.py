@@ -36,7 +36,8 @@ class CLI(ABC):
     @abstractmethod
     def init_parser(self, usage: str = "", desc: Optional[str] = None) -> None:
         """Initialize the argument parser for this CLI command"""
-        self.parser = options.create_base_parser(self.name, usage=usage, desc=desc)
+        if self.parser is None:
+            self.parser = options.create_base_parser(self.name, usage=usage, desc=desc)
 
     def parse(self) -> None:
         """Parse command line arguments"""
@@ -124,12 +125,15 @@ class CLI(ABC):
         self.connect()
 
     @classmethod
-    def cli_executor(cls, args=None):
+    def cli_executor(cls, args=None, subparser=None):
         """Execute the CLI command"""
         if args is None:
             args = sys.argv
         try:
             cli = cls(args)
+            # If a subparser is provided, set it as the parser and configure it
+            if subparser is not None:
+                cli.parser = subparser
             cli.run()
         except SpamError as e:
             logger.error(f"SPAM error: {e}")
