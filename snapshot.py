@@ -5,7 +5,7 @@ from cli import CLI
 import arguments.options as options
 import utils.utils as utils
 import conf.config as config
-from utils.exceptions import ValidationError, ProxmoxAPIError, SnapshotError
+from utils.exceptions import ValidationError, SnapshotError
 from utils.validation import validate_vmid, validate_node_name, validate_snapshot_name
 
 
