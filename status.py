@@ -107,8 +107,6 @@ class Status(CLI):
             func = self._stop_vm
         elif self.options.destroy:
             func = self._destroy_vm
-        else:
-            raise ValidationError("No operation specified")
         
         try:
             if self.options.vmid:
