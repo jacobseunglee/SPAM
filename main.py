@@ -15,7 +15,7 @@ from utils.exceptions import SpamError
 def create_main_parser() -> argparse.ArgumentParser:
     """Create the main argument parser"""
     parser = argparse.ArgumentParser(
-        prog='spam',
+        prog='SPAM',
         description='SPAM - Scripting Proxmox Automation Magic',
         epilog='Use "spam <command> --help" for more information about a command.'
     )

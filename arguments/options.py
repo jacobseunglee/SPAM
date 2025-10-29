@@ -1,11 +1,35 @@
 import argparse
+import sys
+
+
+def validate_vmid_arg(value):
+    """Custom type function for VMID arguments with better error messages"""
+    try:
+        vmid = int(value)
+        if vmid < 100 or vmid > 999999999:
+            raise argparse.ArgumentTypeError(f"VMID must be between 100 and 999999999, got: {value}")
+        return vmid
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"VMID must be a valid integer, got: '{value}'")
+
+
+def validate_range_arg(value):
+    """Custom type function for range arguments with better error messages"""
+    try:
+        vmid = int(value)
+        if vmid < 100 or vmid > 999999999:
+            raise argparse.ArgumentTypeError(f"Range VMID must be between 100 and 999999999, got: {value}")
+        return vmid
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"Range VMID must be a valid integer, got: '{value}'")
 
 
 def create_base_parser(prog: str, usage: str = "", desc=None) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog=prog,
         usage=usage,
-        description=desc
+        description=desc,
+        exit_on_error=False  # This prevents sys.exit() on error
     )
     add_verbosity_options(parser)
     return parser
@@ -45,14 +69,14 @@ def add_vmid_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         'vmid',
         nargs='?',
-        type=int,
+        type=validate_vmid_arg,
         help='ID of source VM.'
     )
 def add_newid_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         'newid',
         nargs='?',
-        type=int,
+        type=validate_vmid_arg,
         help='ID of target VM that will be created. Optional if -e is set.'
     )
 def add_name_options(parser: argparse.ArgumentParser) -> None:
@@ -78,6 +102,6 @@ def add_range_options(parser: argparse.ArgumentParser) -> None:
             '-r', '--range',
             nargs=2,
             metavar=('first', 'last'),
-            type=int,
+            type=validate_range_arg,
             help='Range of VMIDs to modify (inclusive).'
     )
