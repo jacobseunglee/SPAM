@@ -5,7 +5,10 @@ from typing import Callable, Any, Optional, Union
 from functools import wraps
 
 from proxmoxer import ProxmoxAPI
-from utils.exceptions import TaskTimeoutError, ProxmoxAPIError, VMNotFoundError
+from utils.exceptions import (
+    TaskTimeoutError, ProxmoxAPIError, VMNotFoundError,
+    AuthenticationError, ProxmoxPermissionError, InvalidTaskError
+)
 from utils.validation import validate_vmid, validate_node_name
 
 
@@ -59,7 +62,11 @@ def retry_on_failure(
     return decorator
 
 
-@retry_on_failure(max_attempts=3, delay=2.0)
+@retry_on_failure(
+    max_attempts=3,
+    delay=2.0,
+    exceptions=(ProxmoxAPIError, ConnectionError, TimeoutError)
+)
 def block_until_done(
     prox: ProxmoxAPI,
     task_id: str,
@@ -82,7 +89,10 @@ def block_until_done(
 
     Raises:
         TaskTimeoutError: If task doesn't complete within timeout
-        ProxmoxAPIError: If task fails or API error occurs
+        ProxmoxAPIError: If task fails or API error occurs (retryable)
+        AuthenticationError: If authentication fails (non-retryable)
+        ProxmoxPermissionError: If permission is denied (non-retryable)
+        InvalidTaskError: If task ID is invalid or not found (non-retryable)
     """
     node = validate_node_name(node)
     start_time = time.time()
@@ -93,6 +103,17 @@ def block_until_done(
         try:
             data = prox.nodes(node).tasks(task_id).status.get()
         except Exception as e:
+            error_msg = str(e).lower()
+            
+            # Check for authentication/permission errors (should not retry)
+            if any(keyword in error_msg for keyword in ['authentication', 'auth', 'unauthorized', '401']):
+                raise AuthenticationError(f"Authentication failed: {e}")
+            if any(keyword in error_msg for keyword in ['permission', 'forbidden', '403']):
+                raise ProxmoxPermissionError(f"Permission denied: {e}")
+            if any(keyword in error_msg for keyword in ['not found', '404', 'invalid task']):
+                raise InvalidTaskError(task_id)
+            
+            # For other errors, raise ProxmoxAPIError (which can be retried)
             raise ProxmoxAPIError(f"Failed to get task status: {e}")
 
         status = data.get("status", "")
