@@ -59,7 +59,7 @@ def retry_on_failure(
     return decorator
 
 
-@retry_on_failure(max_attempts=3, delay=2.0)
+@retry_on_failure(max_attempts=3, delay=2.0, exceptions=(ProxmoxAPIError, Exception))
 def block_until_done(
     prox: ProxmoxAPI,
     task_id: str,
