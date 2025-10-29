@@ -6,7 +6,7 @@ Main entry point for the SPAM CLI application
 
 import sys
 import argparse
-from typing import List, Optional
+from typing import List
 
 from utils.logging_config import configure_spam_logging, get_logger
 from utils.exceptions import SpamError

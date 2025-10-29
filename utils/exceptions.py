@@ -83,3 +83,20 @@ class TaskTimeoutError(SpamError):
 class EnvironmentFileError(ConfigurationError):
     """Raised when environment file cannot be loaded or is invalid"""
     pass
+
+
+class AuthenticationError(SpamError):
+    """Raised when authentication with Proxmox fails"""
+    pass
+
+
+class ProxmoxPermissionError(SpamError):
+    """Raised when user lacks necessary permissions for Proxmox operations"""
+    pass
+
+
+class InvalidTaskError(SpamError):
+    """Raised when task ID is invalid or not found"""
+    def __init__(self, task_id: str):
+        super().__init__(f"Invalid or not found task ID: {task_id}")
+        self.task_id = task_id
