@@ -7,7 +7,7 @@ import arguments.options as options
 import utils.cloudinit as cloudinit
 import utils.utils as utils
 import conf.config as config
-from utils.exceptions import ValidationError, ProxmoxAPIError, CloneError
+from utils.exceptions import ValidationError, CloneError
 from utils.validation import validate_vmid, validate_node_name, validate_vm_name
 
 
