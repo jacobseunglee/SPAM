@@ -108,9 +108,7 @@ def block_until_done(
             raise AuthenticationError(f"Authentication failed: {e}")
         except ResourceException as e:
             # Handle specific HTTP status codes
-            if e.status_code == 401:
-                raise AuthenticationError(f"Authentication failed: {e.status_message}")
-            elif e.status_code == 403:
+            if e.status_code == 403:
                 raise ProxmoxPermissionError(f"Permission denied: {e.status_message}")
             elif e.status_code == 404:
                 raise InvalidTaskError(task_id)
