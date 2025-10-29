@@ -1,5 +1,6 @@
 """Input validation utilities for SPAM"""
 
+import ipaddress
 import re
 from typing import Union, List, Optional
 from utils.exceptions import ValidationError
@@ -66,21 +67,14 @@ def validate_ip_address(ip: str) -> str:
     if not ip:
         raise ValidationError("IP address cannot be empty")
     
-    # Basic IP address pattern (supports both IPv4 and simple IPv6)
-    ipv4_pattern = r'^(\d{1,3}\.){3}\d{1,3}$'
-    ipv6_pattern = r'^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$'
-    
-    if not (re.match(ipv4_pattern, ip) or re.match(ipv6_pattern, ip)):
+    try:
+        # Use ipaddress module for comprehensive IPv4 and IPv6 validation
+        # This supports all valid formats including compressed notation (::),
+        # mixed notation (::ffff:192.0.2.1), and other valid IPv6 formats
+        ipaddress.ip_address(ip)
+        return ip
+    except ValueError as e:
         raise ValidationError(f"Invalid IP address format: {ip}")
-    
-    # Additional IPv4 validation
-    if re.match(ipv4_pattern, ip):
-        parts = ip.split('.')
-        for part in parts:
-            if int(part) > 255:
-                raise ValidationError(f"Invalid IPv4 address: {ip}")
-    
-    return ip
 
 
 def validate_vmid_range(range_values: List[Union[str, int]]) -> tuple[int, int]:
