@@ -5,7 +5,8 @@ def create_base_parser(prog: str, usage: str = "", desc=None) -> argparse.Argume
     parser = argparse.ArgumentParser(
         prog=prog,
         usage=usage,
-        description=desc
+        description=desc,
+        exit_on_error=False  # This prevents sys.exit() on error
     )
     add_verbosity_options(parser)
     return parser
