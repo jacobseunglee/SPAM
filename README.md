@@ -181,6 +181,9 @@ SPAM/
 PROXMOX_HOST=192.168.1.100
 PROXMOX_USER=admin
 PROXMOX_PASSWORD=secretpassword
+# Optionally you can also use a token!
+# PROXMOX_TOKEN=mytokenname
+# PROXMOX_TOKEN_SECRET=secrettoken
 PROXMOX_REALM=pve
 PROXMOX_DEFAULT_NODE=pve01
 ```

@@ -29,6 +29,8 @@ class CLI(ABC):
         self.proxmox_host: Optional[str] = None
         self.proxmox_user: Optional[str] = None
         self.proxmox_pass: Optional[str] = None
+        self.proxmox_token: Optional[str] = None
+        self.proxmox_token_secret: Optional[str] = None
         self.proxmox_realm: Optional[str] = None
         self.configpath: Optional[str] = None
         self.logger = logger
@@ -67,14 +69,26 @@ class CLI(ABC):
             # Validate required connection parameters
             validate_required_string(self.proxmox_host, "PROXMOX_HOST")
             validate_required_string(self.proxmox_user, "PROXMOX_USER")
-            validate_required_string(self.proxmox_pass, "PROXMOX_PASSWORD")
             validate_required_string(self.proxmox_realm, "PROXMOX_REALM")
+            message: Optional[str] = None
+            token: Optional[str] = None
+            secret: Optional[str] = None
+            password: Optional[str] = None
+            if self.proxmox_token is not None:
+                token = validate_required_string(self.proxmox_token, "PROXMOX_TOKEN")
+                secret = validate_required_string(self.proxmox_token_secret, "PROXMOX_TOKEN_SECRET")
+                message = f"Connecting to Proxmox at {self.proxmox_host} with token {self.proxmox_user}@{self.proxmox_realm}!{token}"
+            else:
+                message = f"Connecting to Proxmox at {self.proxmox_host} with user {self.proxmox_user}@{self.proxmox_realm}"
+                password = validate_required_string(self.proxmox_pass, "PROXMOX_PASSWORD")
             
-            self.logger.debug(f"Connecting to Proxmox at {self.proxmox_host}")
+            self.logger.info(message)
             self.prox = ProxmoxAPI(
                 self.proxmox_host, 
                 user=f'{self.proxmox_user}@{self.proxmox_realm}', 
-                password=self.proxmox_pass, 
+                token_name=token,
+                token_value=secret,
+                password=password,
                 verify_ssl=False
             )
             
@@ -92,6 +106,8 @@ class CLI(ABC):
             self.proxmox_host = os.getenv('PROXMOX_HOST')
             self.proxmox_user = os.getenv('PROXMOX_USER')
             self.proxmox_pass = os.getenv('PROXMOX_PASSWORD')
+            self.proxmox_token = os.getenv('PROXMOX_TOKEN')
+            self.proxmox_token_secret = os.getenv('PROXMOX_TOKEN_SECRET')
             self.proxmox_realm = os.getenv('PROXMOX_REALM', 'pve')  # Default to 'pve'
             self.default_node = os.getenv('PROXMOX_DEFAULT_NODE')
             self.configpath = os.getenv('CONFIG_PATH')
